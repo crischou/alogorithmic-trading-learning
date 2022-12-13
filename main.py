@@ -17,3 +17,8 @@ stocks = pd.read_csv('sp_500_stocks.csv')
 #Free IEX Cloud API token, free, randomized data
 from secrets import IEX_CLOUD_API_TOKEN
 
+#Printing single stock
+symbol = 'AAPL'
+api_url = f'https://cloud.iexapis.com/stable/stock/{symbol}/quote/?token={IEX_CLOUD_API_TOKEN}'
+data = requests.get(api_url).json()
+print(data)
