@@ -10,10 +10,16 @@ import xlsxwriter
 import math
 
 
+#Ignore warnings
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
+
 # Importing List of Stocks
 # Usually you would connect to index provider/financial data API to get list of companies
 stocks = pd.read_csv('sp_500_stocks.csv')
-
+stocks = stocks[~stocks['Ticker'].isin(['DISCA', 'HFC','VIAC','WLTW'])] #Filter out delisted stocks
 # Acquiring an API token
 # Free IEX Cloud API token, free, randomized data
 
@@ -90,6 +96,42 @@ for stock in stocks['Ticker'][:5]:
         ignore_index=True
     )
 
+#print(final_dataframe)
 
+
+#Batch API Call
+#using chunks to split into smaller lists
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+symbol_groups = list(chunks(stocks['Ticker'], 100)) #Chunks of 100
+symbol_strings = []
+
+for i in range(0, len(symbol_groups)):
+    symbol_strings.append(','.join(symbol_groups[i])) 
+#    print(symbol_strings[i])
+
+final_dataframe = pd.DataFrame(columns=my_columns)
+
+for symbol_string in symbol_strings:
+    batch_api_call_url = f'https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol_string}&types=quote&token={IEX_CLOUD_API_TOKEN}'
+    data = requests.get(batch_api_call_url).json()
+    
+    for symbol in symbol_string.split(','):
+        final_dataframe = final_dataframe.append(
+            pd.Series(
+                [
+                    symbol,
+                    data[symbol]['quote']['latestPrice'],
+                    data[symbol]['quote']['high'],
+                    data[symbol]['quote']['low'],
+                    data[symbol]['quote']['marketCap'],
+                    'N/A'
+                ], index=my_columns
+            ),
+            ignore_index=True
+        )
 
 print(final_dataframe)
