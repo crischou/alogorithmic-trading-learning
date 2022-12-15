@@ -148,3 +148,13 @@ except ValueError:
     print('Invalid input \nPlease try again:')
     portfoilio_size = input('Enter the total value of your portfolio: ')
     val = float(portfoilio_size)
+
+#position size means how many shares of each stock you want to invest
+
+position_size = val/len(final_dataframe.index)
+#print(position_size)
+
+for i in range(0, len(final_dataframe.index)):
+    final_dataframe.loc[i, 'Number of Shares to Buy'] = math.floor(position_size/final_dataframe.loc[i, 'Stock Price']) #loc is easy way to acess row column data
+
+print(final_dataframe)
