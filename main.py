@@ -158,3 +158,64 @@ for i in range(0, len(final_dataframe.index)):
     final_dataframe.loc[i, 'Number of Shares to Buy'] = math.floor(position_size/final_dataframe.loc[i, 'Stock Price']) #loc is easy way to acess row column data
 
 print(final_dataframe)
+
+
+# Writing to Excel
+writer = pd.ExcelWriter('recommended_trades.xlsx', engine='xlsxwriter') 
+final_dataframe.to_excel(writer, 'Recommended Trades', index=False)
+
+#variables that specify color scheme
+background_color = '0a0a23'
+font_color = '#ffffff'
+
+#formatting cells of excel sheet
+#use for columns with strings
+string_format = writer.book.add_format(
+
+    {   
+        'font_color': font_color,
+        'bg_color': background_color,
+        'border': 1 #solid border
+    }
+
+)
+#columns with dollars
+dollar_format = writer.book.add_format(
+
+    { 
+        'num_format': '$0.00',  
+        'font_color': font_color,
+        'bg_color': background_color,
+        'border': 1 #solid border
+    }
+
+)
+#columns with integers
+integer_format = writer.book.add_format(
+
+    {   
+        'num_format': '0',
+        'font_color': font_color,
+        'bg_color': background_color,
+        'border': 1 #solid border
+    }
+
+)
+
+#writer.sheets['Recommended Trades'].set_column('A:A', 18, string_format)
+#writer.save()
+column_formats = {
+    'A': ['Ticker', string_format],
+    'B': ['Stock Price', dollar_format],
+    'C': ['Day High', dollar_format],
+    'D': ['Day low', dollar_format],
+    'E': ['Market Capitalization', dollar_format],
+    'F': ['Number of Shares to Buy', integer_format]
+}
+
+#loop through dictionary
+for column in column_formats.keys(): #keys return all columns
+    writer.sheets['Recommended Trades'].set_column(f'{column}:{column}', 18, column_formats[column][1])
+    writer.sheets['Recommended Trades'].write(f'{column}1', column_formats[column][0], column_formats[column][1]) 
+
+writer.save()
